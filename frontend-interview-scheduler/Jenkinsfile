@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+
+    environment {
+        NODE_HOME = '/usr/local/bin' // Update this to your Node.js installation path if necessary
+        PATH = "${NODE_HOME}:${env.PATH}"
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install' // Use 'yarn install' if using Yarn
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'npm run build' // Use 'yarn build' if using Yarn
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // Example deployment step
+                sh '''
+                mkdir -p /var/www/interview-scheduler-frontend
+                cp -R build/* /var/www/interview-scheduler-frontend/
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Frontend build and deployment succeeded!'
+        }
+        failure {
+            echo 'Frontend build or deployment failed.'
+        }
+    }
+}
