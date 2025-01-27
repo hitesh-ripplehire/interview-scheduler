@@ -5,21 +5,22 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 checkout scm
-                dir('frontend-interview-scheduler') {
-                    echo "Switching to frontend subdirectory"
-                }
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                dir('frontend-interview-scheduler') { // Navigate to the correct subdirectory
+                    sh 'npm install'
+                }
             }
         }
 
         stage('Build') {
             steps {
-                sh 'npm run build'
+                dir('frontend-interview-scheduler') { // Ensure the build runs in the correct directory
+                    sh 'npm run build'
+                }
             }
         }
 
@@ -27,7 +28,7 @@ pipeline {
             steps {
                 sh '''
                 mkdir -p /var/www/interview-scheduler-frontend
-                cp -R build/* /var/www/interview-scheduler-frontend/
+                cp -R frontend-interview-scheduler/build/* /var/www/interview-scheduler-frontend/
                 '''
             }
         }
