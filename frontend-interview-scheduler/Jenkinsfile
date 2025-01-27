@@ -25,13 +25,14 @@ pipeline {
         }
 
         stage('Deploy') {
-            steps {
-                sh '''
-                mkdir -p /var/www/interview-scheduler-frontend
-                cp -R frontend-interview-scheduler/build/* /var/www/interview-scheduler-frontend/
-                '''
-            }
-        }
+    steps {
+        sh '''
+        sudo mkdir -p /var/www/interview-scheduler-frontend
+        sudo cp -R frontend-interview-scheduler/dist/interview-scheduler/* /var/www/interview-scheduler-frontend/
+        '''
+    }
+}
+
     }
 
     post {
