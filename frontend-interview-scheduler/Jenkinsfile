@@ -1,46 +1,100 @@
+// pipeline {
+//     agent any
+
+//     stages {
+//         stage('Clone Repository') {
+//             steps {
+//                 checkout scm
+//             }
+//         }
+
+//         stage('Install Dependencies') {
+//             steps {
+//                 dir('frontend-interview-scheduler') { // Navigate to the correct subdirectory
+//                     sh 'npm install'
+//                 }
+//             }
+//         }
+
+//         stage('Build') {
+//             steps {
+//                 dir('frontend-interview-scheduler') { // Ensure the build runs in the correct directory
+//                     sh 'npm run build'
+//                 }
+//             }
+//         }
+
+//         stage('Deploy') {
+//     steps {
+//         sh '''
+//         sudo mkdir -p /var/www/interview-scheduler-frontend
+//         sudo cp -R frontend-interview-scheduler/dist/interview-scheduler/* /var/www/interview-scheduler-frontend/
+//         '''
+//     }
+// }
+
+//     }
+
+//     post {
+//         success {
+//             echo 'Frontend build and deployment succeeded!'
+//         }
+//         failure {
+//             echo 'Frontend build or deployment failed.'
+//         }
+//     }
+// }
+
+
+
+
+
+
+
 pipeline {
     agent any
-
+    environment {
+        IMAGE_NAME = "interview-scheduler-frontend"
+        CONTAINER_NAME = "frontend-container"
+        SERVER_PORT = "80"
+    }
     stages {
         stage('Clone Repository') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/hitesh-ripplehire/interview-scheduler-frontend.git'
             }
         }
-
-        stage('Install Dependencies') {
+        stage('Build Frontend') {
             steps {
-                dir('frontend-interview-scheduler') { // Navigate to the correct subdirectory
+                dir('frontend-interview-scheduler') {
                     sh 'npm install'
-                }
-            }
-        }
-
-        stage('Build') {
-            steps {
-                dir('frontend-interview-scheduler') { // Ensure the build runs in the correct directory
                     sh 'npm run build'
                 }
             }
         }
-
-        stage('Deploy') {
-    steps {
-        sh '''
-        sudo mkdir -p /var/www/interview-scheduler-frontend
-        sudo cp -R frontend-interview-scheduler/dist/interview-scheduler/* /var/www/interview-scheduler-frontend/
-        '''
+        stage('Build Docker Image') {
+            steps {
+                dir('frontend-interview-scheduler') {
+                    sh 'docker build -t ${IMAGE_NAME} .'
+                }
+            }
+        }
+        stage('Deploy Frontend') {
+            steps {
+                sh '''
+                docker stop ${CONTAINER_NAME} || true
+                docker rm ${CONTAINER_NAME} || true
+                docker run -d --name ${CONTAINER_NAME} -p ${SERVER_PORT}:80 ${IMAGE_NAME}
+                '''
+            }
+        }
     }
-}
-
-    }
-
     post {
         success {
-            echo 'Frontend build and deployment succeeded!'
+            echo "✅ Frontend deployment successful!"
         }
         failure {
-            echo 'Frontend build or deployment failed.'
+            echo "❌ Frontend deployment failed."
         }
     }
 }
